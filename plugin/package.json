@@ -1,0 +1,58 @@
+{
+  "name": "astro-rehype-relative-markdown-links",
+  "description": "A rehype plugin built for Astro that aims to transform relative links in MD and MDX files into the proper URL path",
+  "version": "0.13.1",
+  "keywords": ["astro", "rehype", "markdown", "relative links"],
+  "homepage": "https://github.com/vernak2539/astro-rehype-relative-markdown-links",
+  "main": "./src/index.mjs",
+  "type": "module",
+  "types": "./src/index.d.ts",
+  "files": [
+    "src/index.mjs",
+    "src/utils.mjs",
+    "src/options.mjs",
+    "src/**/*.d.ts",
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vernak2539/astro-rehype-relative-markdown-links.git"
+  },
+  "author": "Alex Vernacchia <alvernacchia@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vernak2539/astro-rehype-relative-markdown-links/issues",
+    "email": "alvernacchia@gmail.com"
+  },
+  "packageManager": "yarn@4.1.1",
+  "scripts": {
+    "pre-release": "yarn run changelog && yarn run prettier && yarn run generate-docs",
+    "generate-docs": "typedoc --readme none --gitRevision main --plugin typedoc-plugin-markdown src",
+    "prettier": "prettier ./src/** -w",
+    "test": "MATTER_CACHE_DISABLE=true node --loader=esmock --test",
+    "type-check": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "catch-unknown": "^2.0.0",
+    "debug": "^4.3.4",
+    "github-slugger": "^2.0.0",
+    "gray-matter": "^4.0.3",
+    "unified": "^11.0.4",
+    "unist-util-visit": "^5.0.0",
+    "zod": "^3.22.4"
+  },
+  "peerDependencies": {
+    "astro": ">=2.x <5"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.12",
+    "@types/node": "^18.17.8",
+    "esmock": "^2.6.4",
+    "prettier": "^4.0.0-alpha.8",
+    "rehype": "^13.0.1",
+    "typedoc": "^0.25.13",
+    "typedoc-plugin-markdown": "^3.17.1",
+    "typescript": "^5.4.5"
+  }
+}
