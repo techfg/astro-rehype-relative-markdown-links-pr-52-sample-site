@@ -13,7 +13,6 @@ import {
   URL_PATH_SEPARATOR,
   FILE_PATH_SEPARATOR,
   PATH_SEGMENT_EMPTY,
-  PATH_SEGMENT_INDEX_REGEX,
   shouldProcessFile,
   resolveCollectionBase,
   getMatter,
@@ -25,8 +24,8 @@ import { validateOptions, mergeCollectionOptions } from "./options.mjs";
 
 const debug = debugFn("astro-rehype-relative-markdown-links");
 
-/** @typedef {import('./options.d.ts').Options} Options */
-/** @typedef {import('./options.d.ts').CollectionConfig} CollectionConfig */
+/** @typedef {import('./options').Options} Options */
+/** @typedef {import('./options').CollectionConfig} CollectionConfig */
 /**
  * Rehype plugin for Astro to add support for transforming relative links in MD and MDX files into their final page paths.
  *
@@ -129,30 +128,13 @@ function astroRehypeRelativeMarkdownLinks(opts = {}) {
       // if we have a custom slug, use it, else use the default
       const resolvedSlug = resolveSlug(generatedSlug, frontmatterSlug);
       // determine the collection base based on specified options
-      /** @type {import('./utils.d.ts').ProcessingDetails} */
+      /** @type {import('./utils').ProcessingDetails} */
       const processingDetails = {
         currentFile,
         collectionDir,
         destinationSlug: resolvedSlug,
       };
-      // slug of empty string ('') is a special case in Astro for root page (e.g., index.md) of a collection
-      const frontMatterSlugIsCollectionRootIndex =
-        frontmatterSlug === PATH_SEGMENT_EMPTY;
-      const isIndexPage =
-        frontMatterSlugIsCollectionRootIndex ||
-        (typeof frontmatterSlug !== "string" &&
-          withoutFileExt.match(PATH_SEGMENT_INDEX_REGEX));
-      const resolvedUrlIsRelative =
-        collectionOptions.collectionBase === "pathRelative" ||
-        collectionOptions.collectionBase === "collectionRelative";
-      // When root index of collection or any index page when resolving to relative path,
-      // by default, force a trailing slash to end of resolved url
-      const originalUrlOverride =
-        frontMatterSlugIsCollectionRootIndex ||
-        (isIndexPage && resolvedUrlIsRelative)
-          ? URL_PATH_SEPARATOR
-          : undefined;
-
+      const isIndexPage = frontmatterSlug === PATH_SEGMENT_EMPTY || (typeof frontmatterSlug !== 'string' && withoutFileExt.match(/\/index$/));
       // content collection slugs are relative to content collection root (or site root if collectionPathMode is `root`)
       // so build url including the content collection name (if applicable) and the pages slug
       // NOTE - When there is a content collection name being applied, this only handles situations where the physical
@@ -166,8 +148,11 @@ function astroRehypeRelativeMarkdownLinks(opts = {}) {
               resolvedSlug,
             ].join(URL_PATH_SEPARATOR);
 
+      // slug of empty string ('') is a special case in Astro for root page (e.g., index.md) of a collection
       let webPathFinal = applyTrailingSlash(
-        originalUrlOverride || frontmatterSlug || urlPathPart,
+        (frontmatterSlug === PATH_SEGMENT_EMPTY || (isIndexPage && (collectionOptions.collectionBase === "pathRelative" || collectionOptions.collectionBase === "collectionRelative"))
+          ? URL_PATH_SEPARATOR
+          : frontmatterSlug) || urlPathPart,
         resolvedUrl,
         trailingSlashMode,
       );

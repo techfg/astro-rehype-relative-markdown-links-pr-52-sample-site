@@ -1,6 +1,6 @@
 import type { Plugin } from "unified";
 import type { Root } from "hast";
-import type { Options, CollectionConfig } from "./options.d.ts";
+import type { Options, CollectionConfig } from "./options";
 
 export { Options, CollectionConfig };
 

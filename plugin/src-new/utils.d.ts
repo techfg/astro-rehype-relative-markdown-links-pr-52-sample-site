@@ -1,4 +1,4 @@
-import type { EffectiveCollectionOptions } from "./options.d.ts";
+import type { EffectiveCollectionOptions } from "./options";
 
 export type SplitPathFromQueryAndFragmentFn = (
   path: string,

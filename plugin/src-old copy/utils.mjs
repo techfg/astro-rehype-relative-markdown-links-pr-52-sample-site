@@ -10,33 +10,28 @@ const isWindows =
   typeof process !== "undefined" && process.platform === "win32";
 const windowsSlashRE = /\\/g;
 
-/** @type {import('./utils.d.ts').Slash} */
+/** @type {import('./utils').Slash} */
 function slash(npath, sep) {
   return npath.replace(windowsSlashRE, sep);
 }
 
-/** @type {import('./utils.d.ts').NormalizePath} */
+/** @type {import('./utils').NormalizePath} */
 function normalizePath(npath) {
   return path.posix.normalize(isWindows ? slash(npath, path.posix.sep) : npath);
 }
 
-/** @type {import('./utils.d.ts').GetCurrentFileSlugDirPath} */
+/** @type {import('./utils').GetCurrentFileSlugDirPath} */
 function getCurrentFileSlugDirPath(processingDetails) {
   /*
     To determine "where we are", we use the slug from the current file (if there is one) or we use the physical path on disk of 
     the current file. Note that if Astro's getStaticPaths is manipulating the slug in a way that is not consistent with the slug 
     in the file or the structure on disk, relative path resolution may be incorrect.  This is no different than any other part 
     of this plugin since we assume across the board that the page paths are either the path from the slug or the path of the 
-    physical file on disk, either relative to the collection directory itself.  
+    physical file ondisk, either relative to the collection directory itself.  
   */
   const { currentFile, collectionDir } = processingDetails;
   const { slug: frontmatterSlug } = getMatter(currentFile);
-
-  // slug of empty string ('') is a special case in Astro for root page (e.g., index.md) of a collection
-  // so we know the collection directory is the slug directory
-  if (frontmatterSlug === PATH_SEGMENT_EMPTY) {
-    return collectionDir;
-  }
+  const relativeToCollectionPath = path.relative(collectionDir, currentFile);
 
   /*
     resolveSlug will ensure that any custom slug present is valid or return the file path if no custom slug is present. We don't 
@@ -47,7 +42,6 @@ function getCurrentFileSlugDirPath(processingDetails) {
         we can build the proper relative path to the collection directory from where we are
     3. The number of segments in the generated slug and the actual file path would be the same regardless
   */
-  const relativeToCollectionPath = path.relative(collectionDir, currentFile);
   const resolvedSlug = resolveSlug(relativeToCollectionPath, frontmatterSlug);
 
   // append the resolved slug to the collecton directory to create a fully qualified path
@@ -65,7 +59,7 @@ function getCurrentFileSlugDirPath(processingDetails) {
  * and the "collection directory" would be `../..`.  Similarly, if "we are at" `/docs/foo/test.md`,
  * the "collection directory" would be `.`.
  *
- * @type {import('./utils.d.ts').getRelativePathFromCurrentFileToCollection}
+ * @type {import('./utils').getRelativePathFromCurrentFileToCollection}
  */
 function getRelativePathFromCurrentFileToCollection(processingDetails) {
   // "where we are"
@@ -84,13 +78,7 @@ export const FILE_PATH_SEPARATOR = path.sep;
 /** @type {string} */
 export const URL_PATH_SEPARATOR = "/";
 
-/** @type {string } */
-export const PATH_SEGMENT_EMPTY = "";
-
-/** @type {RegExp} */
-export const PATH_SEGMENT_INDEX_REGEX = /\/index$/;
-
-/** @type {import('./utils.d.ts').ReplaceExtFn} */
+/** @type {import('./utils').ReplaceExtFn} */
 export const replaceExt = (npath, ext) => {
   if (typeof npath !== "string" || npath.length === 0) {
     return npath;
@@ -99,7 +87,7 @@ export const replaceExt = (npath, ext) => {
   return npath.replace(new RegExp(path.extname(npath) + "$"), ext);
 };
 
-/** @type {import('./utils.d.ts').IsValidRelativeLinkFn} */
+/** @type {import('./utils').IsValidRelativeLinkFn} */
 export const isValidRelativeLink = (link) => {
   if (!link) {
     return false;
@@ -116,7 +104,7 @@ export const isValidRelativeLink = (link) => {
   return true;
 };
 
-/** @type {import('./utils.d.ts').IsValidFile} */
+/** @type {import('./utils').IsValidFile} */
 export const isValidFile = (path) => {
   if (!path) {
     return false;
@@ -134,7 +122,7 @@ export const isValidFile = (path) => {
   }
 };
 
-/** @type {import('./utils.d.ts').SplitPathFromQueryAndFragmentFn} */
+/** @type {import('./utils').SplitPathFromQueryAndFragmentFn} */
 export const splitPathFromQueryAndFragment = (url) => {
   const indexQuery = url.indexOf("?");
   const indexHash = url.indexOf("#");
@@ -159,7 +147,7 @@ export const splitPathFromQueryAndFragment = (url) => {
   return [decodeURI(splitUrl), splitQueryStringAndHash];
 };
 
-/** @type {import('./utils.d.ts').NormaliseAstroOutputPath} */
+/** @type {import('./utils').NormaliseAstroOutputPath} */
 export const normaliseAstroOutputPath = (initialPath, collectionOptions) => {
   const buildPath = () => {
     if (
@@ -186,20 +174,20 @@ export const normaliseAstroOutputPath = (initialPath, collectionOptions) => {
   return normalizePath(buildPath());
 };
 
-/** @type {import('./utils.d.ts').GenerateSlug} */
+/** @type {import('./utils').GenerateSlug} */
 export const generateSlug = (pathSegments) => {
   return pathSegments
     .map((segment) => githubSlug(segment))
     .join(URL_PATH_SEPARATOR)
-    .replace(PATH_SEGMENT_INDEX_REGEX, "");
+    .replace(/\/index$/, "");
 };
 
-/** @type {import('./utils.d.ts').ResolveSlug} */
+/** @type {import('./utils').ResolveSlug} */
 export const resolveSlug = (generatedSlug, frontmatterSlug) => {
   return z.string().default(generatedSlug).parse(frontmatterSlug);
 };
 
-/** @type {import('./utils.d.ts').ApplyTrailingSlash} */
+/** @type {import('./utils').ApplyTrailingSlash} */
 export const applyTrailingSlash = (
   origUrl,
   resolvedUrl,
@@ -227,14 +215,14 @@ export const applyTrailingSlash = (
   return resolvedUrl;
 };
 
-/** @type {import('./utils.d.ts').ShouldProcessFile} */
+/** @type {import('./utils').ShouldProcessFile} */
 export function shouldProcessFile(npath) {
   // Astro excludes files that include underscore in any segment of the path under contentDIr
   // see https://github.com/withastro/astro/blob/0fec72b35cccf80b66a85664877ca9dcc94114aa/packages/astro/src/content/utils.ts#L253
   return !npath.split(path.sep).some((p) => p && p.startsWith("_"));
 }
 
-/** @type {import('./utils.d.ts').ResolveCollectionBase} */
+/** @type {import('./utils').ResolveCollectionBase} */
 export function resolveCollectionBase(collectionOptions, processingDetails) {
   return collectionOptions.collectionBase === false
     ? ""
@@ -252,9 +240,9 @@ export function resolveCollectionBase(collectionOptions, processingDetails) {
  * Similarly, if "we are at" `/docs/foo/bar/test.md` and "going to" `/docs/foo/bar/reference.md`,
  * the result would be "reference" because they are in the same directory.
  *
- * @type {import('./utils.d.ts').getRelativePathFromCurrentFileToCollection}
+ * @type {import('./utils').getRelativePathFromCurrentFileToCollection}
  */
-/** @type {import('./utils.d.ts').GetRelativePathFromCurrentFileToDestination} */
+/** @type {import('./utils').GetRelativePathFromCurrentFileToDestination} */
 export function getRelativePathFromCurrentFileToDestination(processingDetails) {
   // "where we are"
   const resolvedSlugDirPath = getCurrentFileSlugDirPath(processingDetails);
@@ -267,13 +255,13 @@ export function getRelativePathFromCurrentFileToDestination(processingDetails) {
   );
 
   // determine relative path from the current file "directory" to the destination
-  return path.relative(resolvedSlugDirPath, destinationPath) || ".";
+  return path.relative(resolvedSlugDirPath, destinationPath);
 }
 
-/** @type {Record<string, import('./utils.d.ts').MatterData>} */
+/** @type {Record<string, import('./utils').MatterData>} */
 const matterCache = {};
 const matterCacheEnabled = process.env.ARRML_MATTER_CACHE_DISABLE !== "true";
-/** @type {import('./utils.d.ts').GetMatter} */
+/** @type {import('./utils').GetMatter} */
 export function getMatter(npath) {
   const readMatter = () => {
     const content = readFileSync(npath);

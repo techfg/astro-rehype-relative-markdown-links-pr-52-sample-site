@@ -28,7 +28,7 @@ export const CollectionConfigSchema = z.object({
   name: z.string().optional(),
 });
 
-/** @typedef {import('./options.d.ts').CollectionConfig} CollectionConfig */
+/** @typedef {import('./options').CollectionConfig} CollectionConfig */
 export const OptionsSchema = z.object({
   /**
    * @name srcDir
@@ -72,16 +72,9 @@ export const OptionsSchema = z.object({
    * common content collection (ex: `/my-blog/test` and `/your-blog/test` both point to the file `./src/content/posts/test.md`
    * in the content collection `posts`).
    *
-   * Important Notes:
-   * - This is a top-level option and will apply to all content collections.  If you have multiple content collections
+   * Note that this is a top-level option and will apply to all content collections.  If you have multiple content collections
    * and want the behavior to be different on a per content collection basis, add the collection(s) to the {@link collections}
    * option and provide a value for collection specific {@link CollectionConfig base} option.
-   * - When using either `"collectionRelative"` or `"pathRelative"`, due to the nature of relative links, you MUST ensure
-   * that any directory paths in your site (e.g., urls to `index` pages), contain a trailing slash.  For example, given
-   * `./src/content/docs/index.md`, the url should be `/docs/` and not `/docs` as any link generated on that page by the plugin
-   * for a page inside of `./src/content/docs` directory will not navigate correctly since, in relative terms, `/docs` is
-   * different than `/docs/`. Along this line, it is highly encouraged to apply `trailingSlash="always"` to your Astro site and
-   * this plugin to help avoid relative pathing issues.
    * @example
    * ```js
    * {
@@ -160,7 +153,7 @@ export const OptionsSchema = z.object({
     .default("ignore"),
 });
 
-/** @type {import('./options.d.ts').ValidateOptions} */
+/** @type {import('./options').ValidateOptions} */
 export const validateOptions = (options) => {
   const result = OptionsSchema.safeParse(options || {});
   if (!result.success) {
@@ -170,7 +163,7 @@ export const validateOptions = (options) => {
   return result.data;
 };
 
-/** @type {import('./options.d.ts').MergeCollectionOptions} */
+/** @type {import('./options').MergeCollectionOptions} */
 export const mergeCollectionOptions = (collectionName, options) => {
   const config = options.collections[collectionName] || {};
   const { base = options.collectionBase, name = collectionName } = config;
